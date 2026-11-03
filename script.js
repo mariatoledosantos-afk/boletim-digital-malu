@@ -1,4 +1,5 @@
-const dadosBrutos = [
+// Dados fictícios padronizados do 9º Ano
+const dadosBoletim = [
   { disciplina: "Língua Portuguesa", tri1: 78, tri2: "8,2", tri3: 8.6, faltas: [2, 2, 1] },
   { disciplina: "Matemática", tri1: 55, tri2: "5,4", tri3: null, faltas: [3, 2, 2] },
   { disciplina: "Ciências", tri1: 84, tri2: 7.9, tri3: "8,3", faltas: [1, 1, 1] },
@@ -16,137 +17,114 @@ const dadosBrutos = [
   { disciplina: "Práticas Experimentais", tri1: 64, tri2: "6,6", tri3: 7.0, faltas: [1, 1, 1] }
 ];
 
-/* 
-  Conceito: 
-  - Variável: um espaço na memória para guardar dados (como const e let).
-  - Objeto: estrutura que guarda informações agrupadas (como os dados de uma disciplina).
-  - Array: uma lista que guarda vários itens (como a lista de disciplinas ou de faltas).
-  - Função: um bloco de código que executa uma tarefa específica quando é chamado.
-*/
+// Frequência fictícia/demonstrativa para esta etapa (será calculada dinamicamente no futuro)
+const FREQUENCIA_DEMONSTRATIVA = "92%";
 
-// Função para normalizar notas para a escala de 0 a 10
+// Função para normalizar qualquer formato de nota para a escala de 0 a 10
 function normalizarNota(valor) {
   if (valor === null || valor === undefined || valor === "") {
     return null;
   }
 
-  // Se for string com vírgula, troca por ponto para converter em número
-  let numero = typeof valor === "string" ? parseFloat(valor.replace(",", ".")) : Number(valor);
+  // Se a nota vier como texto (ex: "8,5"), troca vírgula por ponto e converte para número
+  if (typeof valor === "string") {
+    valor = parseFloat(valor.replace(",", "."));
+  }
 
-  if (isNaN(numero)) {
+  if (isNaN(valor)) {
     return null;
   }
 
-  // Se estiver entre 10 e 100 (ex: 82, 100), divide por 10
-  if (numero > 10 && numero <= 100) {
-    numero = numero / 10;
+  // Se a nota estiver maior que 10 e até 100, divide por 10 (ex: 85 vira 8.5)
+  if (valor > 10 && valor <= 100) {
+    valor = valor / 10;
   }
 
-  // Valida se está na faixa correta de 0 a 10
-  if (numero < 0 || numero > 10) {
-    return null;
+  // Garante que a nota esteja dentro do limite de 0 a 10
+  if (valor >= 0 && valor <= 10) {
+    return valor;
   }
 
-  return numero;
+  return null;
 }
 
-// Função para formatar a nota para exibição (com vírgula e 1 casa decimal, ex: 8,5)
-function formatarNotaExibicao(notaNormalizada) {
-  if (notaNormalizada === null) {
-    return "—";
-  }
-  return notaNormalizada.toFixed(1).replace(".", ",");
-}
+// Função para renderizar a tabela e atualizar os cards de resumo
+function renderizarBoletim() {
+  const corpoTabela = document.getElementById("corpo-tabela");
+  corpoTabela.innerHTML = "";
 
-// Processa os dados brutos aplicando a normalização e calculando médias e faltas
-const disciplinasProcessadas = dadosBrutos.map(item => {
-  const t1 = normalizarNota(item.tri1);
-  const t2 = normalizarNota(item.tri2);
-  const t3 = normalizarNota(item.tri3);
+  let somaMediasValidas = 0;
+  let qtdDisciplinasComMedia = 0;
+  let totalFaltasGeral = 0;
+  let qtdBomDesempenho = 0;
+  let qtdAtencao = 0;
 
-  // Filtra apenas as notas válidas para calcular a média
-  const notasValidas = [t1, t2, t3].filter(n => n !== null);
-  
-  let media = null;
-  if (notasValidas.length > 0) {
-    const soma = notasValidas.reduce((acc, curr) => acc + curr, 0);
-    media = soma / notasValidas.length;
-  }
+  dadosBoletim.forEach((item) => {
+    // Normaliza as notas de cada trimestre
+    const n1 = normalizarNota(item.tri1);
+    const n2 = normalizarNota(item.tri2);
+    const n3 = normalizarNota(item.tri3);
 
-  // Soma das faltas dos 3 trimestres
-  const totalFaltas = item.faltas.reduce((acc, curr) => acc + curr, 0);
+    // Calcula a média ignorando trimestres sem nota
+    const notasValidas = [n1, n2, n3].filter((n) => n !== null);
+    let mediaFormatada = "—";
+    let situacao = "Nota ainda não disponível";
+    let classeSituacao = "situacao-indisponivel";
 
-  // Define a situação baseada na média (referência: 6,0)
-  let situacao = "Nota ainda não disponível";
-  let classeSituacao = "situacao-neutro";
+    if (notasValidas.length > 0) {
+      const somaNotas = notasValidas.reduce((acc, curr) => acc + curr, 0);
+      const media = somaNotas / notasValidas.length;
+      mediaFormatada = media.toFixed(1).replace(".", ",");
 
-  if (media !== null) {
-    if (media >= 6.0) {
-      situacao = "Bom desempenho";
-      classeSituacao = "situacao-bom";
-    } else {
-      situacao = "Atenção";
-      classeSituacao = "situacao-atencao";
+      somaMediasValidas += media;
+      qtdDisciplinasComMedia++;
+
+      if (media >= 6.0) {
+        situacao = "Bom desempenho";
+        classeSituacao = "situacao-bom";
+        qtdBomDesempenho++;
+      } else {
+        situacao = "Atenção";
+        classeSituacao = "situacao-atencao";
+        qtdAtencao++;
+      }
     }
-  }
 
-  return {
-    disciplina: item.disciplina,
-    tri1: t1,
-    tri2: t2,
-    tri3: t3,
-    media: media,
-    faltas: totalFaltas,
-    situacao: situacao,
-    classeSituacao: classeSituacao
-  };
-});
+    // Soma total de faltas da disciplina
+    const totalFaltasDisciplina = item.faltas.reduce((acc, curr) => acc + curr, 0);
+    totalFaltasGeral += totalFaltasDisciplina;
 
-// Preenche a tabela no HTML usando forEach (passa por cada item da lista)
-const tbody = document.getElementById("tabela-corpo");
+    // Formatação visual para a tabela
+    const displayN1 = n1 !== null ? n1.toFixed(1).replace(".", ",") : "—";
+    const displayN2 = n2 !== null ? n2.toFixed(1).replace(".", ",") : "—";
+    const displayN3 = n3 !== null ? n3.toFixed(1).replace(".", ",") : "—";
 
-disciplinasProcessadas.forEach(item => {
-  const tr = document.createElement("tr");
+    // Cria a linha da tabela HTML via DOM
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.disciplina}</td>
+      <td>${displayN1}</td>
+      <td>${displayN2}</td>
+      <td>${displayN3}</td>
+      <td><strong>${mediaFormatada}</strong></td>
+      <td>${totalFaltasDisciplina}</td>
+      <td class="${classeSituacao}">${situacao}</td>
+    `;
 
-  tr.innerHTML = `
-    <td>${item.disciplina}</td>
-    <td>${formatarNotaExibicao(item.tri1)}</td>
-    <td>${formatarNotaExibicao(item.tri2)}</td>
-    <td>${formatarNotaExibicao(item.tri3)}</td>
-    <td>${formatarNotaExibicao(item.media)}</td>
-    <td>${item.faltas}</td>
-    <td class="${item.classeSituacao}">${item.situacao}</td>
-  `;
+    corpoTabela.appendChild(tr);
+  });
 
-  tbody.appendChild(tr);
-});
+  // Atualiza os Cards de Resumo no topo da página
+  const mediaGeralGlobal = qtdDisciplinasComMedia > 0 
+    ? (somaMediasValidas / qtdDisciplinasComMedia).toFixed(1).replace(".", ",") 
+    : "—";
 
-// Cálculo e preenchimento dos Cards de Resumo
-function atualizarResumo() {
-  // Média Geral
-  const mediasValidas = disciplinasProcessadas.map(d => d.media).filter(m => m !== null);
-  const somaMedias = mediasValidas.reduce((acc, curr) => acc + curr, 0);
-  const mediaGeral = mediasValidas.length > 0 ? (somaMedias / mediasValidas.length) : null;
-
-  document.getElementById("card-media-geral").textContent = mediaGeral !== null ? mediaGeral.toFixed(1).replace(".", ",") : "—";
-
-  // Total de Faltas
-  const totalFaltasGeral = disciplinasProcessadas.reduce((acc, curr) => acc + curr.faltas, 0);
+  document.getElementById("card-media-geral").textContent = mediaGeralGlobal;
   document.getElementById("card-total-faltas").textContent = totalFaltasGeral;
-
-  // Disciplinas com Bom Desempenho e Atenção
-  const bomDesempenhoCount = disciplinasProcessadas.filter(d => d.situacao === "Bom desempenho").length;
-  const atencaoCount = disciplinasProcessadas.filter(d => d.situacao === "Atenção").length;
-
-  document.getElementById("card-bom-desempenho").textContent = bomDesempenhoCount;
-  document.getElementById("card-atencao").textContent = atencaoCount;
+  document.getElementById("card-bom-desempenho").textContent = qtdBomDesempenho;
+  document.getElementById("card-atencao").textContent = qtdAtencao;
+  document.getElementById("card-frequencia").textContent = FREQUENCIA_DEMONSTRATIVA;
 }
 
-// Executa a função de resumo ao carregar a página
-atualizarResumo();
-
-/*
-  Nota sobre a Frequência:
-  A frequência de 92% exibida nos cards é APENAS FICTÍCIA E DEMONSTRATIVA nesta versão inicial.
-  Ela será calculada dinamicamente a partir de dados reais de presença em etapas futuras do projeto.
-*/
+// Executa a função principal assim que a página carregar
+document.addEventListener("DOMContentLoaded", renderizarBoletim);
