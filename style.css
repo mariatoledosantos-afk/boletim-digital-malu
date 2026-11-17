@@ -122,6 +122,7 @@ body {
 /* Painel de Ações e Edição */
 .painel-acoes {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
@@ -230,3 +231,37 @@ td:first-child {
 .situacao-bom {
   color: var(--cor-sucesso);
   font-weight: bold;
+}
+
+.situacao-atencao {
+  color: var(--cor-alerta);
+  font-weight: bold;
+}
+
+.situacao-indisponivel {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Classes auxiliares para controle de exibição e edição */
+.oculto {
+  display: none !important;
+}
+
+.grupo-faltas {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.grupo-faltas .input-edicao {
+  width: 42px;
+}
+
+.mensagem-erro {
+  color: var(--cor-alerta);
+}
+
+.mensagem-sucesso {
+  color: var(--cor-sucesso);
+}
