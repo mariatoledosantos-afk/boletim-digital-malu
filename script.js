@@ -6,26 +6,26 @@ const CONFIG_ALUNO = {
 };
 
 // Dados fictícios padronizados do 9º Ano (usados caso não existam dados salvos na API)
-const dadosIniciais = [
-  { disciplina: "Língua Portuguesa", tri1: 78, tri2: "8,2", tri3: 8.6, faltas: [2, 2, 1] },
-  { disciplina: "Matemática", tri1: 55, tri2: "5,4", tri3: null, faltas: [3, 2, 2] },
-  { disciplina: "Ciências", tri1: 84, tri2: 7.9, tri3: "8,3", faltas: [1, 1, 1] },
-  { disciplina: "História", tri1: "7,1", tri2: 82, tri3: null, faltas: [1, 2, 1] },
-  { disciplina: "Geografia", tri1: 69, tri2: "7,5", tri3: 7.8, faltas: [0, 1, 1] },
-  { disciplina: "Língua Inglesa", tri1: 88, tri2: 8.4, tri3: null, faltas: [1, 0, 1] },
-  { disciplina: "Arte", tri1: "9,2", tri2: 87, tri3: 9.0, faltas: [1, 1, 0] },
-  { disciplina: "Educação Física", tri1: 96, tri2: "9,3", tri3: null, faltas: [0, 1, 0] },
-  { disciplina: "Educação Digital", tri1: 91, tri2: 8.9, tri3: "9,4", faltas: [1, 1, 0] },
-  { disciplina: "Educação Financeira", tri1: 76, tri2: "7,2", tri3: null, faltas: [1, 1, 1] },
-  { disciplina: "Rec. Aprend. Matemática", tri1: 58, tri2: "5,9", tri3: 6.2, faltas: [2, 2, 1] },
-  { disciplina: "Leitura Rec. Aprend. Lingua Portuguesa", tri1: 72, tri2: "7,6", tri3: null, faltas: [2, 1, 1] },
-  { disciplina: "Pensamento Lógico", tri1: 49, tri2: 5.5, tri3: "5,8", faltas: [2, 2, 2] },
-  { disciplina: "Literatura Arte e Movimento", tri1: "8,0", tri2: 84, tri3: null, faltas: [1, 1, 0] },
-  { disciplina: "Práticas Experimentais", tri1: 64, tri2: "6,6", tri3: 7.0, faltas: [1, 1, 1] }
-];
+const dadosIniciais = new Array(
+  { disciplina: "Língua Portuguesa", tri1: 78, tri2: "8,2", tri3: 8.6, faltas: new Array(2, 2, 1) },
+  { disciplina: "Matemática", tri1: 55, tri2: "5,4", tri3: null, faltas: new Array(3, 2, 2) },
+  { disciplina: "Ciências", tri1: 84, tri2: 7.9, tri3: "8,3", faltas: new Array(1, 1, 1) },
+  { disciplina: "História", tri1: "7,1", tri2: 82, tri3: null, faltas: new Array(1, 2, 1) },
+  { disciplina: "Geografia", tri1: 69, tri2: "7,5", tri3: 7.8, faltas: new Array(0, 1, 1) },
+  { disciplina: "Língua Inglesa", tri1: 88, tri2: 8.4, tri3: null, faltas: new Array(1, 0, 1) },
+  { disciplina: "Arte", tri1: "9,2", tri2: 87, tri3: 9.0, faltas: new Array(1, 1, 0) },
+  { disciplina: "Educação Física", tri1: 96, tri2: "9,3", tri3: null, faltas: new Array(0, 1, 0) },
+  { disciplina: "Educação Digital", tri1: 91, tri2: 8.9, tri3: "9,4", faltas: new Array(1, 1, 0) },
+  { disciplina: "Educação Financeira", tri1: 76, tri2: "7,2", tri3: null, faltas: new Array(1, 1, 1) },
+  { disciplina: "Rec. Aprend. Matemática", tri1: 58, tri2: "5,9", tri3: 6.2, faltas: new Array(2, 2, 1) },
+  { disciplina: "Leitura Rec. Aprend. Lingua Portuguesa", tri1: 72, tri2: "7,6", tri3: null, faltas: new Array(2, 1, 1) },
+  { disciplina: "Pensamento Lógico", tri1: 49, tri2: 5.5, tri3: "5,8", faltas: new Array(2, 2, 2) },
+  { disciplina: "Literatura Arte e Movimento", tri1: "8,0", tri2: 84, tri3: null, faltas: new Array(1, 1, 0) },
+  { disciplina: "Práticas Experimentais", tri1: 64, tri2: "6,6", tri3: 7.0, faltas: new Array(1, 1, 1) }
+);
 
 // Estado da sessão em memória
-let dadosBoletim = [];
+let dadosBoletim = new Array();
 let pinSessao = "";
 let modoEdicao = false;
 
@@ -38,7 +38,6 @@ function normalizarNota(valor) {
     return null;
   }
 
-  // Se a nota vier como texto (ex: "8,5"), troca vírgula por ponto e converte para número
   if (typeof valor === "string") {
     valor = parseFloat(valor.replace(",", "."));
   }
@@ -47,12 +46,10 @@ function normalizarNota(valor) {
     return null;
   }
 
-  // Se a nota estiver maior que 10 e até 100, divide por 10 (ex: 85 vira 8.5)
   if (valor > 10 && valor <= 100) {
     valor = valor / 10;
   }
 
-  // Garante que a nota esteja dentro do limite de 0 a 10
   if (valor >= 0 && valor <= 10) {
     return valor;
   }
@@ -67,7 +64,6 @@ function validarNotaDigitada(texto) {
     return { valido: true, valor: null };
   }
 
-  // Aceita apenas dígitos com opcional separador decimal (. ou ,)
   if (!/^\d+([.,]\d+)?$/.test(limpo)) {
     return { valido: false, valor: null };
   }
@@ -127,19 +123,16 @@ function renderizarBoletim() {
   let qtdAtencao = 0;
 
   dadosBoletim.forEach((item, index) => {
-    // Normaliza as notas de cada trimestre
     const n1 = normalizarNota(item.tri1);
     const n2 = normalizarNota(item.tri2);
     const n3 = normalizarNota(item.tri3);
 
-    // Garante array de faltas com 3 posições
-    const faltasArr = Array.isArray(item.faltas) ? item.faltas :;
-    const f1 = Number(faltasArr[0]) || 0;
-    const f2 = Number(faltasArr[1]) || 0;
-    const f3 = Number(faltasArr[2]) || 0;
+    const faltasArr = Array.isArray(item.faltas) ? item.faltas : new Array(0, 0, 0);
+    const f1 = Number(faltasArr.at(0)) || 0;
+    const f2 = Number(faltasArr.at(1)) || 0;
+    const f3 = Number(faltasArr.at(2)) || 0;
 
-    // Calcula a média ignorando trimestres sem nota
-    const notasValidas = [n1, n2, n3].filter((n) => n !== null);
+    const notasValidas = new Array(n1, n2, n3).filter((n) => n !== null);
     let mediaFormatada = "—";
     let situacao = "Nota ainda não disponível";
     let classeSituacao = "situacao-indisponivel";
@@ -163,20 +156,16 @@ function renderizarBoletim() {
       }
     }
 
-    // Soma total de faltas da disciplina
     const totalFaltasDisciplina = f1 + f2 + f3;
     totalFaltasGeral += totalFaltasDisciplina;
 
-    // Cria a linha da tabela HTML via DOM com segurança
     const tr = document.createElement("tr");
 
-    // Coluna Disciplina (segura com textContent)
     const tdDisciplina = document.createElement("td");
     tdDisciplina.textContent = item.disciplina;
     tr.appendChild(tdDisciplina);
 
-    // Colunas 1º, 2º e 3º Trimestre
-    const notasTri = [n1, n2, n3];
+    const notasTri = new Array(n1, n2, n3);
     notasTri.forEach((nota, triIdx) => {
       const tdNota = document.createElement("td");
       if (modoEdicao) {
@@ -184,7 +173,7 @@ function renderizarBoletim() {
         input.type = "text";
         input.className = "input-edicao";
         input.dataset.index = index;
-        input.dataset.campo = `tri${triIdx + 1}`;
+        input.dataset.campo = "tri" + (triIdx + 1);
         input.value = nota !== null ? String(nota).replace(".", ",") : "";
         input.addEventListener("input", () => input.classList.remove("invalido"));
         tdNota.appendChild(input);
@@ -194,24 +183,22 @@ function renderizarBoletim() {
       tr.appendChild(tdNota);
     });
 
-    // Coluna Média
     const tdMedia = document.createElement("td");
     const strongMedia = document.createElement("strong");
     strongMedia.textContent = mediaFormatada;
     tdMedia.appendChild(strongMedia);
     tr.appendChild(tdMedia);
 
-    // Coluna Faltas
     const tdFaltas = document.createElement("td");
     if (modoEdicao) {
       const divFaltas = document.createElement("div");
       divFaltas.className = "grupo-faltas";
 
-      [f1, f2, f3].forEach((faltaVal, fIdx) => {
+      new Array(f1, f2, f3).forEach((faltaVal, fIdx) => {
         const inputF = document.createElement("input");
         inputF.type = "text";
         inputF.className = "input-edicao";
-        inputF.title = `Faltas ${fIdx + 1}º Tri`;
+        inputF.title = "Faltas " + (fIdx + 1) + "º Tri";
         inputF.dataset.index = index;
         inputF.dataset.faltaTri = fIdx;
         inputF.value = String(faltaVal);
@@ -225,7 +212,6 @@ function renderizarBoletim() {
     }
     tr.appendChild(tdFaltas);
 
-    // Coluna Situação
     const tdSituacao = document.createElement("td");
     tdSituacao.className = classeSituacao;
     tdSituacao.textContent = situacao;
@@ -234,7 +220,6 @@ function renderizarBoletim() {
     corpoTabela.appendChild(tr);
   });
 
-  // Atualiza os Cards de Resumo no topo da página
   const mediaGeralGlobal = qtdDisciplinasComMedia > 0
     ? (somaMediasValidas / qtdDisciplinasComMedia).toFixed(1).replace(".", ",")
     : "—";
@@ -261,7 +246,7 @@ async function abrirBoletim() {
   exibirStatus("mensagem-login", "Conectando...", "info");
 
   try {
-    const resposta = await fetch(`${CONFIG_ALUNO.apiUrl}/api/v1/boletins/abrir`, {
+    const resposta = await fetch(CONFIG_ALUNO.apiUrl + "/api/v1/boletins/abrir", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -286,3 +271,18 @@ async function abrirBoletim() {
     }
 
     if (!resposta.ok) {
+      exibirStatus("mensagem-login", "Não foi possível conectar ao servidor. Tente novamente.", "erro");
+      btnEntrar.disabled = false;
+      return;
+    }
+
+    const json = await resposta.json();
+
+    // Armazena PIN somente em memória e limpa o campo da tela
+    pinSessao = pinDigitado;
+    inputPin.value = "";
+
+    // Se existirem dados salvos na API, usa exclusivamente eles; caso contrário, usa os locais
+    if (json && json.dados && Array.isArray(json.dados.disciplinas)) {
+      dadosBoletim = json.dados.disciplinas.map((d) => ({
+        disciplina: d.disciplina,
