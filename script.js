@@ -124,7 +124,6 @@ function renderizarBoletim() {
 
   dadosBoletim.forEach((item, index) => {
     const n1 = normalizarNota(item.tri1);
-    
     const n2 = normalizarNota(item.tri2);
     const n3 = normalizarNota(item.tri3);
 
